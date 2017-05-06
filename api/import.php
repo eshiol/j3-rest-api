@@ -14,3 +14,8 @@ if (!class_exists('JLoader'))
 
 // Setup the autoloader for the application classes.
 JLoader::registerPrefix('Api', __DIR__);
+
+require_once JPATH_LIBRARIES . '/vendor/autoload.php';
+require_once JPATH_LIBRARIES . '/classmap.php';
+
+jimport('legacy.response.response');

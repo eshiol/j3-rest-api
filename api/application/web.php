@@ -70,6 +70,9 @@ class ApiApplicationWeb extends JApplicationWeb
 		// Load the Joomla CMS configuration object.
 		$this->loadConfiguration($this->fetchConfigurationData());
 
+		// Load the Joomla API configuration object.
+		$this->loadConfiguration($this->fetchApiConfigurationData());
+		
 		// By default, assume response may be cached.
 		$this->allowCache(true);
 	}
@@ -190,6 +193,10 @@ class ApiApplicationWeb extends JApplicationWeb
 	{
 		$this->dispatcher = ($dispatcher === null) ? JEventDispatcher::getInstance() : $dispatcher;
 
+		// Load the JPluginHelper class
+		JLoader::register('JPlugin', JPATH_PLATFORM . '/cms/plugin/plugin.php');
+		JLoader::register('JPluginHelper', JPATH_PLATFORM . '/cms/plugin/helper.php');
+		
 		// Trigger the authentication plugins.
 		JPluginHelper::importPlugin('authentication');
 
@@ -246,27 +253,27 @@ class ApiApplicationWeb extends JApplicationWeb
 		$config = array();
 
 		// Ensure that required path constants are defined.
-		if (!defined('JPATH_CONFIGURATION'))
+		if (!defined('JPATH_APICONFIGURATION'))
 		{
 			$path = getenv('JAPI_CONFIG');
 			if ($path)
 			{
-				define('JPATH_CONFIGURATION', realpath($path));
+				define('JPATH_APICONFIGURATION', realpath($path));
 			}
 			else
 			{
-				define('JPATH_CONFIGURATION', realpath(dirname(JPATH_BASE) . '/config'));
+				define('JPATH_APICONFIGURATION', realpath(dirname(JPATH_BASE) . '/config'));
 			}
 		}
 
 		// Set the configuration file path for the application.
-		if (file_exists(JPATH_CONFIGURATION . '/config.json'))
+		if (file_exists(JPATH_APICONFIGURATION . '/config.json'))
 		{
-			$file = JPATH_CONFIGURATION . '/config.json';
+			$file = JPATH_APICONFIGURATION . '/config.json';
 		}
 		else
 		{
-			$file = JPATH_CONFIGURATION . '/config.dist.json';
+			$file = JPATH_APICONFIGURATION . '/config.dist.json';
 		}
 
 		if (!is_readable($file))
@@ -331,7 +338,7 @@ class ApiApplicationWeb extends JApplicationWeb
 		$this->fetchMaps(JPATH_ADMINISTRATOR . '/components');
 
 		// Merge the main services file.
-		$this->loadMaps(json_decode(file_get_contents(JPATH_CONFIGURATION . '/services.json'), true));
+		$this->loadMaps(json_decode(file_get_contents(JPATH_APICONFIGURATION . '/services.json'), true));
 
 		return $this;
 	}

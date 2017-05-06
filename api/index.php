@@ -47,6 +47,10 @@ if (file_exists( JPATH_LIBRARIES . '/import.php'))
 }
 
 // Ensure that required path constants are defined.
+if (!defined('JPATH_ROOT'))
+{
+	define('JPATH_ROOT', realpath(dirname(__DIR__)));
+}
 if (!defined('JPATH_BASE'))
 {
 	define('JPATH_BASE', realpath(dirname(__DIR__)));
@@ -59,17 +63,25 @@ if (!defined('JPATH_ADMINISTRATOR'))
 {
 	define('JPATH_ADMINISTRATOR', $JAPIHOME . '/administrator');
 }
+if (!defined('JPATH_COMPONENTS'))
+{
+	define('JPATH_COMPONENTS', $JAPIHOME . '/components');
+}
 if (!defined('JPATH_CACHE'))
 {
-	define('JPATH_CACHE', '/tmp/cache');
+	define('JPATH_CACHE', JPATH_SITE . '/cache');
 }
 if (!defined('JPATH_CONFIGURATION'))
 {
-	define('JPATH_CONFIGURATION', $JAPIHOME . '/etc');
+	define('JPATH_CONFIGURATION', JPATH_ROOT);
 }
 if (!defined('JPATH_API'))
 {
 	define('JPATH_API', $JAPIHOME . '/api');
+}
+if (!defined('JPATH_APICONFIGURATION'))
+{
+	define('JPATH_APICONFIGURATION', JPATH_API . '/etc');
 }
 if (!defined('JPATH_PLUGINS'))
 {
