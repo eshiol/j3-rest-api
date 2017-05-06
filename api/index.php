@@ -102,6 +102,18 @@ try
 	// Store the application.
 	JFactory::$application = $application;
 
+	if ($application->get('debug', false))
+	{
+		JLog::addLogger(['text_file' => $application->get('log', 'eshiol.log.php'), 'extension' => 'api_default'], JLog::DEBUG, array('api'));
+		if ($application->get('phpconsole'))
+		{
+			if (jimport('eshiol.core.logger.phpconsole'))
+			{
+				JLog::addLogger(['logger' => 'phpconsole', 'extension' => 'api_phpconsole'],  JLOG::DEBUG, array('api'));
+			}
+		}
+	}
+	
 	// Execute the application.
 	$application->loadSession()
 		->loadDatabase()
