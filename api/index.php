@@ -102,6 +102,50 @@ try
 	// Store the application.
 	JFactory::$application = $application;
 
+	// Prepare the application
+	$application->loadSession()
+		->loadDatabase();
+	
+	$identity = null;
+	// See if the client has sent authorization headers
+	if (strpos(PHP_SAPI, 'cgi') !== false)
+	{
+		$authorization = $application->input->server->get('REDIRECT_HTTP_AUTHORIZATION', null, 'string');
+	}
+	else
+	{
+		$authorization = $application->input->server->get('HTTP_AUTHORIZATION', null, 'string');
+	}
+	// If basic authorization is available, authenticate user
+	if (strstr($authorization, 'Basic'))
+	{
+		$parts = explode(':', base64_decode(substr($authorization, 6)));
+		if (count($parts) == 2)
+		{
+			// Joomla does not like blank passwords
+			if (!empty($parts[1]))
+			{
+				// Get a database object
+				$db    = JFactory::getDbo();
+				$query = $db->getQuery(true)
+					->select('id, password')
+					->from('#__users')
+					->where('username=' . $db->q($parts[0]));
+				$db->setQuery($query);
+				$result = $db->loadObject();
+	
+				if ($result)
+				{
+					$match = JUserHelper::verifyPassword($parts[1], $result->password, $result->id);
+					if ($match === true)
+					{
+						$identity = JUser::getInstance($result->id);
+					}
+				}
+			}
+		}
+	}
+	
 	if ($application->get('debug', false))
 	{
 		JLog::addLogger(['text_file' => $application->get('log', 'eshiol.log.php'), 'extension' => 'api_default'], JLog::DEBUG, array('api'));
@@ -115,9 +159,7 @@ try
 	}
 	
 	// Execute the application.
-	$application->loadSession()
-		->loadDatabase()
-		->loadIdentity()
+	$application->loadIdentity($identity)
 		->loadDispatcher()
 		->fetchStandardMaps()
 		->loadRouter()
