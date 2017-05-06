@@ -1,6 +1,5 @@
 {
 	"debug": true,
 	"log": "eshiol.log.php",
-    "phpconsole": true,
 	"absoluteHrefs": true
 }
