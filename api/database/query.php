@@ -31,6 +31,7 @@ class ApiDatabaseQuery
 	 */
 	public function __construct(JDatabase $db)
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		$this->db = $db;
 
 		// Initialise pagination array.
@@ -55,6 +56,7 @@ class ApiDatabaseQuery
 	 */
 	public function getItem(JDatabaseQuery $query, $id, $pk = 'id')
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		// Apply key to query.
 		$itemQuery = clone($query);
 		$itemQuery->where($this->db->qn($pk) . ' = ' . (int) $id);
@@ -79,6 +81,7 @@ class ApiDatabaseQuery
 	 */
 	public function getList(JDatabaseQuery $query)
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		// Apply sanity check to perPage.
 		$this->pagination['perPage'] = min(max($this->pagination['perPage'], 1), 100);
 
@@ -109,6 +112,7 @@ class ApiDatabaseQuery
 	 */
 	public function getPagination()
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		return $this->pagination;
 	}
 
@@ -121,6 +125,7 @@ class ApiDatabaseQuery
 	 */
 	public function setPagination($pagination = array())
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		$this->pagination = array_merge($this->pagination, $pagination);
 
 		return $this;

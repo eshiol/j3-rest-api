@@ -18,6 +18,7 @@ abstract class ApiTransformBase implements ApiTransform
 	 */
 	public static function toExternal($definition, $data)
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		return $definition;
 	}
 
@@ -31,6 +32,7 @@ abstract class ApiTransformBase implements ApiTransform
 	 */
 	public static function toInternal($definition, $data)
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		return $definition;
 	}
 

@@ -17,6 +17,7 @@ class ComponentContentArticlesApplication extends ApiApplicationHalJoomla
 	 */
 	protected function transformPosition($definition, $data)
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		switch ($definition)
 		{
 			case '':

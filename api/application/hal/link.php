@@ -29,6 +29,7 @@ class ApiApplicationHalLink
 	 */
 	public function __construct($rel, $href = '')
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		$this->rel = $rel;
 		$this->href = $href;
 	}
@@ -38,6 +39,7 @@ class ApiApplicationHalLink
 	 */
 	public function getRel()
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		return $this->rel;
 	}
 }

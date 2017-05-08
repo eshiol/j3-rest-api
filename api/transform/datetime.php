@@ -18,6 +18,7 @@ class ApiTransformDatetime extends ApiTransformBase
 	 */
 	public static function toExternal($definition, $data)
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		// @TODO Convert MySQL data string to ISO 8601.
 		return (string) $definition;
 	}

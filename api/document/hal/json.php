@@ -38,6 +38,7 @@ class ApiDocumentHalJson extends JDocument
 	 */
 	public function __construct($options = array())
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		parent::__construct($options);
 
 		// Set default mime type.
@@ -62,6 +63,7 @@ class ApiDocumentHalJson extends JDocument
 	 */
 	public function render($cache = false, $params = array())
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		JResponse::allowCache($cache);
 		JResponse::setHeader('Content-disposition', 'attachment; filename="' . $this->getName() . '.json"', true);
 
@@ -114,6 +116,7 @@ class ApiDocumentHalJson extends JDocument
 	 */
 	public function getName()
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		return $this->_name;
 	}
 
@@ -124,6 +127,7 @@ class ApiDocumentHalJson extends JDocument
 	 */
 	protected function relToAbs($links)
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		// Adjust hrefs in the _links object.
 		foreach ($links as $rel => $link)
 		{
@@ -145,6 +149,7 @@ class ApiDocumentHalJson extends JDocument
 	 */
 	public function setName($name = 'joomla')
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		$this->_name = $name;
 
 		return $this;

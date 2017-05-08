@@ -56,6 +56,7 @@ abstract class ApiControllerBase extends JControllerBase implements ApiControlle
 	 */
 	public function execute()
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		// Get service object.
 		$service = $this->getService();
 
@@ -77,6 +78,7 @@ abstract class ApiControllerBase extends JControllerBase implements ApiControlle
 	 */
 	public function getApiQuery()
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		if (is_null($this->apiQuery))
 		{
 			// Get a database query helper object.
@@ -95,6 +97,7 @@ abstract class ApiControllerBase extends JControllerBase implements ApiControlle
 	 */
 	public function getData()
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 	}
 
 	/**
@@ -109,6 +112,7 @@ abstract class ApiControllerBase extends JControllerBase implements ApiControlle
 	 */
 	public function getQuery($table)
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		// Create a database query object.
 		$query = $this->db->getQuery(true)
 			->select('*')
@@ -127,6 +131,7 @@ abstract class ApiControllerBase extends JControllerBase implements ApiControlle
 	 */
 	public function getService()
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		if (is_null($this->service))
 		{
 			$this->service = new ApiApplicationHalJoomla($this->serviceOptions);
@@ -144,6 +149,7 @@ abstract class ApiControllerBase extends JControllerBase implements ApiControlle
 	 */
 	public function setDatabase(JDatabaseDriver $db = null)
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		$this->db = isset($db) ? $db : $this->app->getDatabase();
 
 		return $this;
@@ -158,6 +164,7 @@ abstract class ApiControllerBase extends JControllerBase implements ApiControlle
 	 */
 	public function setOptions($options = array())
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		// Setup dependencies.
 		$this->serviceOptions = (array) $options;
 
@@ -196,6 +203,7 @@ abstract class ApiControllerBase extends JControllerBase implements ApiControlle
 	 */
 	public function checkIdentity()
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		// Get the user
 		$user = $this->app->getIdentity();
 

@@ -18,6 +18,7 @@ abstract class ApiControllerItem extends ApiControllerBase
 	 */
 	public function execute()
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		// Get resource item id from input.
 		$this->id = (int) $this->input->get('id');
 
@@ -40,6 +41,7 @@ abstract class ApiControllerItem extends ApiControllerBase
 	 */
 	public function getData()
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		// Get the database query object.
 		$query = $this->getQuery($this->tableName);
 

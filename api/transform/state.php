@@ -18,6 +18,7 @@ class ApiTransformState extends ApiTransformBase
 	 */
 	public static function toExternal($definition, $data)
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		switch ($definition)
 		{
 			case 0:

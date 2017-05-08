@@ -26,6 +26,7 @@ class ApiApplicationRouter extends JApplicationWebRouterRest
 	 */
 	protected function parseRoute($route)
 	{
+		JLog::add(new JLogEntry(__METHOD__."('{$route}')", JLOG::DEBUG, 'api'));
 		$controller = parent::parseRoute($route);
 
 		// If the controller name includes a component route prefix then handle it.
@@ -38,6 +39,7 @@ class ApiApplicationRouter extends JApplicationWebRouterRest
 			$controller = $parts[2];
 		}
 
+		JLog::add(new JLogEntry("controller: {$controller}", JLOG::DEBUG, 'api'));
 		return $controller;
 	}
 }

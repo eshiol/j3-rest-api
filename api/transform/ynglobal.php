@@ -18,6 +18,7 @@ class ApiTransformYNGlobal extends ApiTransformBase
 	 */
 	public static function toExternal($definition, $data)
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		if ($definition == '')
 		{
 			return 'global';

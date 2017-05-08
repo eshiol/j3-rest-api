@@ -63,6 +63,7 @@ class ApiApplicationWeb extends JApplicationWeb
 	 */
 	public function __construct(JInput $input = null, JRegistry $config = null, JApplicationWebClient $client = null)
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		$this->_startTime = microtime(true);
 
 		parent::__construct($input, $config, $client);
@@ -88,6 +89,7 @@ class ApiApplicationWeb extends JApplicationWeb
 	 */
 	public function getDatabase()
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		return $this->db;
 	}
 
@@ -102,6 +104,7 @@ class ApiApplicationWeb extends JApplicationWeb
 	 */
 	public function loadDatabase(JDatabaseDriver $driver = null)
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		if ($driver === null)
 		{
 			$this->db = JDatabaseDriver::getInstance(
@@ -143,6 +146,7 @@ class ApiApplicationWeb extends JApplicationWeb
 	 */
 	protected function loadMaps($maps = array())
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		// Make sure we have an array.
 		$maps = (array) $maps;
 
@@ -173,6 +177,7 @@ class ApiApplicationWeb extends JApplicationWeb
 	 */
 	public function loadRouter(JApplicationWebRouter $router = null)
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		$this->router = ($router === null) ? new ApiApplicationRouter($this, $this->input) : $router;
 
 		return $this;
@@ -193,6 +198,7 @@ class ApiApplicationWeb extends JApplicationWeb
 	 */
 	public function loadDispatcher(JEventDispatcher $dispatcher = null)
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		$this->dispatcher = ($dispatcher === null) ? JEventDispatcher::getInstance() : $dispatcher;
 
 		// Load the JPluginHelper class
@@ -214,6 +220,7 @@ class ApiApplicationWeb extends JApplicationWeb
 	 */
 	protected function doExecute()
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		$documentOptions = array(
 			'absoluteHrefs' => $this->get('absoluteHrefs', false),
 		);
@@ -251,6 +258,7 @@ class ApiApplicationWeb extends JApplicationWeb
 	 */
 	public function fetchApiConfigurationData($file = '', $class = 'JConfig')
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		// Instantiate variables.
 		$config = array();
 
@@ -301,6 +309,7 @@ class ApiApplicationWeb extends JApplicationWeb
 	 */
 	protected function fetchMaps($basePath = JPATH_SITE)
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		// Get a directory iterator for the base path.
 		$iterator = new DirectoryIterator($basePath);
 
@@ -333,6 +342,7 @@ class ApiApplicationWeb extends JApplicationWeb
 	 */
 	public function fetchStandardMaps()
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		// Look for maps in front-end components.
 		$this->fetchMaps(JPATH_SITE . '/components');
 
@@ -354,6 +364,7 @@ class ApiApplicationWeb extends JApplicationWeb
 	 */
 	public function getMaps()
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		return $this->maps;
 	}
 
@@ -367,6 +378,7 @@ class ApiApplicationWeb extends JApplicationWeb
 	 */
 	protected function respond()
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		$runtime = microtime(true) - $this->_startTime;
 
 		// Set the Server and X-Powered-By Header.
