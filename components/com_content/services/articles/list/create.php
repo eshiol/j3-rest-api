@@ -34,7 +34,7 @@ class ComponentContentArticlesListCreate extends ApiControllerItem
 
 		$this->setOptions($serviceOptions);
 
-		JFactory::getLanguage()->load('com_content', JPATH_ADMINISTRATOR, 'en-GB', true);		
+		JFactory::getLanguage()->load('com_content', JPATH_ADMINISTRATOR, 'en-GB', true);
 	}
 
 	/**
@@ -44,16 +44,16 @@ class ComponentContentArticlesListCreate extends ApiControllerItem
 	{
 		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		parent::checkIdentity();
-		
+
 		// Get service object.
 		$service = $this->getService();
-		
+
 		// Get the resource map
 		$resourceMap = $service->getResourceMap();
 
 		// Get resource item from input.
 		$targetData = json_decode(file_get_contents("php://input"));
-		
+
 		if ($resourceMap)
 		{
 			$targetData = $resourceMap->toInternal($targetData);

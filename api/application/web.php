@@ -69,13 +69,13 @@ class ApiApplicationWeb extends JApplicationWeb
 		parent::__construct($input, $config, $client);
 
 		JFactory::getLanguage()->load('lib_joomla', JPATH_ADMINISTRATOR, 'en-GB', true);
-		
+
 		// Load the Joomla CMS configuration object.
 		$this->loadConfiguration($this->fetchConfigurationData());
 
 		// Load the Joomla API configuration object.
 		$this->loadConfiguration($this->fetchApiConfigurationData());
-	
+
 		// By default, assume response may be cached.
 		$this->allowCache(true);
 	}
@@ -204,7 +204,7 @@ class ApiApplicationWeb extends JApplicationWeb
 		// Load the JPluginHelper class
 		JLoader::register('JPlugin', JPATH_PLATFORM . '/cms/plugin/plugin.php');
 		JLoader::register('JPluginHelper', JPATH_PLATFORM . '/cms/plugin/helper.php');
-	
+
 		// Trigger the authentication plugins.
 		JPluginHelper::importPlugin('authentication');
 

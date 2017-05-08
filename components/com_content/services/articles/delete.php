@@ -46,7 +46,7 @@ class ComponentContentArticlesDelete extends ApiControllerItem
 
 		// Set the correct header if resource is deleted
 		header('Status: 200 Ok', true, 200);
-		
+
 		exit;
 	}
 }

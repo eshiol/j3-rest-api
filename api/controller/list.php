@@ -102,7 +102,7 @@ abstract class ApiControllerList extends ApiControllerBase
 
 		// Get the user
 		$user = $this->app->getIdentity();
-	
+
 		// Filter by access level.
 		if ($user->guest != 1)
 		{
@@ -113,7 +113,7 @@ abstract class ApiControllerList extends ApiControllerBase
 		{
 			$query->where('access = 1');
 		}
-	
+
 		JLog::add(new JLogEntry($query, JLOG::DEBUG, 'api'));
 		return $query;
 	}
