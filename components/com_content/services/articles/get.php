@@ -16,6 +16,7 @@ class ComponentContentArticlesGet extends ApiControllerItem
 	 */
 	public function __construct(JInput $input = null, JApplicationBase $app = null)
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		parent::__construct($input, $app);
 
 		// Use the default database.
@@ -29,6 +30,7 @@ class ComponentContentArticlesGet extends ApiControllerItem
 			'resourceMap' => __DIR__ . '/resource.json',
 			'self' 		  => '/joomla:articles/' . (int) $this->input->get('id'),
 			'tableName'   => '#__content',
+			'fields'      => $input->get('fields', '', 'string'),
 		);
 
 		$this->setOptions($serviceOptions);

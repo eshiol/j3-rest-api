@@ -50,6 +50,7 @@ class ApiApplicationHalJoomla extends ApiApplicationHal
 	 */
 	public function __construct($options = array())
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		// Create a metadata object.
 		$this->meta = new stdClass;
 		$this->meta->apiVersion = '1.0';
@@ -80,6 +81,12 @@ class ApiApplicationHalJoomla extends ApiApplicationHal
 			$this->setMetadata('describedBy', $options['describedBy']);
 		}
 
+		// Set the fields
+		if (isset($options['fields']) && ($options['fields'] != ''))
+		{
+			$this->setMetadata('fields', explode(',', $options['fields']));
+		}
+	
 		// Load the resource field map (if there is one).
 		$resourceMapFile = isset($options['resourceMap']) ? $options['resourceMap'] : '';
 		if ($resourceMapFile != '' && file_exists($resourceMapFile))
@@ -97,6 +104,34 @@ class ApiApplicationHalJoomla extends ApiApplicationHal
 			$this->includeMap = new ApiApplicationIncludemap();
 			$this->includeMap->fromJson(file_get_contents($embeddedMapFile));
 		}
+	
+		// Only showing requested fields.
+		if ($options['fields'] != '')
+		{
+			$fields = explode(',', $options['fields']);
+			if ($this->resourceMap)
+			{
+				foreach ($this->resourceMap->toArray() as $k => $v)
+				{
+					$f = (($i = strpos($k, '/')) === false ? $k : substr($k, $i + 1));
+					if (!in_array($f, $fields))
+					{
+						$this->resourceMap->delete($k);
+					}
+				}
+			}
+			if ($this->includeMap)
+			{
+				foreach ($this->includeMap->toArray() as $k => $v)
+				{
+					$f = (($i = strpos($k, '/')) === false ? $k : substr($k, $i + 1));
+					if (!in_array($f, $fields))
+					{
+						$this->includeMap->delete($k);
+					}
+				}
+			}
+		}
 	}
 
 	/**
@@ -109,6 +144,7 @@ class ApiApplicationHalJoomla extends ApiApplicationHal
 	 */
 	public function embed($name, $data)
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		// If there is no map then use the standard embed method.
 		if (!($this->includeMap instanceof ApiApplicationIncludemap))
 		{
@@ -143,6 +179,7 @@ class ApiApplicationHalJoomla extends ApiApplicationHal
 	 */
 	public function getHal()
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		$this->set('_meta', $this->meta);
 
 		$hal = parent::getHal();
@@ -160,6 +197,7 @@ class ApiApplicationHalJoomla extends ApiApplicationHal
 	 */
 	public function getMetadata($field, $default = '')
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		if (!isset($this->meta->$field))
 		{
 			return $default;
@@ -175,6 +213,7 @@ class ApiApplicationHalJoomla extends ApiApplicationHal
 	 */
 	public function getResourceMap()
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		return $this->resourceMap;
 	}
 
@@ -187,6 +226,7 @@ class ApiApplicationHalJoomla extends ApiApplicationHal
 	 */
 	public function load($object)
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		// If there is no map then use the standard load method.
 		if (empty($this->resourceMap))
 		{
@@ -208,6 +248,7 @@ class ApiApplicationHalJoomla extends ApiApplicationHal
 	 */
 	public function setMetadata($field, $value)
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		$this->meta->$field = $value;
 
 		return $this;
@@ -222,6 +263,7 @@ class ApiApplicationHalJoomla extends ApiApplicationHal
 	 */
 	public function setPagination($page = array())
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		if (isset($page['page']))
 		{
 			$this->meta->page = $page['page'];

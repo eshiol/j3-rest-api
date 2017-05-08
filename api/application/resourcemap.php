@@ -34,6 +34,7 @@ class ApiApplicationResourcemap
 	 */
 	public function __construct(array $options = array())
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		// Set the base path (used to locate custom transform functions).
 		$this->basePath = isset($options['basePath']) ? $options['basePath'] : '';
 	}
@@ -47,6 +48,7 @@ class ApiApplicationResourcemap
 	 */
 	public function fromJson($json)
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		$this->map = json_decode($json, true);
 
 		return $this;
@@ -62,6 +64,7 @@ class ApiApplicationResourcemap
 	 */
 	public function getField($fieldName, $default = '')
 	{
+		JLog::add(new JLogEntry(__METHOD__.'('.$fieldName.')', JLOG::DEBUG, 'api'));
 		return isset($this->map[$fieldName]) ? $this->map[$fieldName] : $default;
 	}
 
@@ -75,6 +78,7 @@ class ApiApplicationResourcemap
 	 */
 	private function getSourceValue($sourceDefinition, $sourceData)
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		// Source definition fields must be in the form type:definition.
 		// Locate first occurrence of a colon.
 		$pos = strpos($sourceDefinition, ':');
@@ -117,6 +121,7 @@ class ApiApplicationResourcemap
 	 */
 	private function getTransformClass($fieldType)
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		// Cache for the class names.
 		static $classNames = array();
 
@@ -178,6 +183,7 @@ class ApiApplicationResourcemap
 	 */
 	private function getValue($fieldName, $data)
 	{
+		JLog::add(new JLogEntry(__METHOD__.'('.$fieldName.')', JLOG::DEBUG, 'api'));
 		// Static array of unpacked json fields.
 		static $unpacked = array();
 
@@ -223,6 +229,7 @@ class ApiApplicationResourcemap
 	 */
 	public function isAvailable($fieldName)
 	{
+		JLog::add(new JLogEntry(__METHOD__.'('.$fieldName.')', JLOG::DEBUG, 'api'));
 		return isset($this->map[$fieldName]);
 	}
 
@@ -236,6 +243,9 @@ class ApiApplicationResourcemap
 	 */
 	public function toExternal($data, array $include = array())
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
+		JLog::add(new JLogEntry('data: '.print_r($data, true), JLOG::DEBUG, 'api'));
+		JLog::add(new JLogEntry('include: '.print_r($include, true), JLOG::DEBUG, 'api'));
 		// If there is no map then return the data unmodified.
 		if (empty($this->map))
 		{
@@ -248,6 +258,7 @@ class ApiApplicationResourcemap
 		// Run through each mapped field.
 		foreach ($this->map as $halField => $sourceDefinition)
 		{
+			JLog::add(new JLogEntry('halField: '.$halField, JLOG::DEBUG, 'api'));
 			// Check that the field is to be included.
 			if (!empty($include) && !in_array($halField, $include))
 			{
@@ -323,6 +334,7 @@ class ApiApplicationResourcemap
 	 */
 	public function toInternal($data)
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		// If there is no map then return the data unmodified.
 		if (empty($this->map))
 		{
@@ -345,6 +357,7 @@ class ApiApplicationResourcemap
 	 */
 	private function transformField($fieldType, $definition, $data)
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		// Get the transform class name.
 		$className = $this->getTransformClass($fieldType);
 
@@ -357,5 +370,29 @@ class ApiApplicationResourcemap
 		{
 			return $definition;
 		}
+	}
+
+	/**
+	 * Method to return a simple array of included fields.
+	 *
+	 * @return array Array of included field names.
+	 */
+	public function toArray()
+	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
+		return $this->map;
+	}
+
+	/**
+	 * Method to destroy a particular field
+	 *
+	 * @param  string  $fieldName Field name.
+	 *
+	 * @return void
+	 */
+	public function delete($fieldName)
+	{
+		JLog::add(new JLogEntry(__METHOD__.'('.$fieldName.')', JLOG::DEBUG, 'api'));
+		unset ($this->map[$fieldName]);
 	}
 }

@@ -28,6 +28,7 @@ class ApiApplicationIncludemap
 	 */
 	public function fromJson($json)
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		$map = json_decode($json, true);
 
 		// The "embedded" array will contain a list of field names to be retained.
@@ -46,6 +47,7 @@ class ApiApplicationIncludemap
 	 */
 	public function toArray()
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		return $this->map;
 	}
 
@@ -58,7 +60,20 @@ class ApiApplicationIncludemap
 	 */
 	public function isIncluded($fieldName)
 	{
+		JLog::add(new JLogEntry(__METHOD__.'('.$fieldName.')', JLOG::DEBUG, 'api'));
 		return isset($this->map[$fieldName]);
 	}
 
+	/**
+	 * Method to destroy a particular field
+	 *
+	 * @param  string  $fieldName Field name.
+	 *
+	 * @return void
+	 */
+	public function delete($fieldName)
+	{
+		JLog::add(new JLogEntry(__METHOD__.'('.$fieldName.')', JLOG::DEBUG, 'api'));
+		$this->map = array_diff($this->map, [$fieldName]);
+	}
 }
