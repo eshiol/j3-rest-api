@@ -4,6 +4,9 @@
 	"/fullText":"string:{fulltext}",
 	"/introText":"string:{introtext}",
 	"/language":"string:{language}",
+	"/state":"state:{state}",
+	"/title":"string:{title}",
+	"/catid":"int:{catid}",
 	"_links/self.href":"string:/joomla:articles/{id}",
 	"_links/joomla:assets.href":"string:/joomla:assets/{asset_id}",
 	"_links/joomla:categories.href":"string:/joomla:categories/{catid}",
@@ -67,7 +70,5 @@
 	"render/siteOptionsShow":"ynglobal:{attribs.show_article_options}",
 	"render/titleLink":"ynglobal:{attribs.link_titles}",
 	"render/titleShow":"ynglobal:{attribs.show_title}",
-	"render/votingShow":"ynglobal:{attribs.show_vote}",
-	"/state":"state:{state}",
-	"/title":"string:{title}"
+	"render/votingShow":"ynglobal:{attribs.show_vote}"
 }

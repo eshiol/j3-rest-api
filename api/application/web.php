@@ -67,6 +67,8 @@ class ApiApplicationWeb extends JApplicationWeb
 
 		parent::__construct($input, $config, $client);
 
+		JFactory::getLanguage()->load('lib_joomla', JPATH_ADMINISTRATOR, 'en-GB', true);
+		
 		// Load the Joomla CMS configuration object.
 		$this->loadConfiguration($this->fetchConfigurationData());
 

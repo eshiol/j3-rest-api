@@ -99,6 +99,11 @@ try
 	// Instantiate the application.
 	$application = JApplicationWeb::getInstance('ApiApplicationWeb');
 
+	if (!defined('JDEBUG'))
+	{
+		define('JDEBUG', $application->get('debug', false));
+	}
+	
 	// Store the application.
 	JFactory::$application = $application;
 
@@ -146,7 +151,7 @@ try
 		}
 	}
 
-	if ($application->get('debug', false))
+	if (JDEBUG)
 	{
 		JLog::addLogger(['text_file' => $application->get('log', 'eshiol.log.php'), 'extension' => 'api_default'], JLog::DEBUG, array('api'));
 	}

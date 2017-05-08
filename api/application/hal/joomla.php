@@ -106,7 +106,7 @@ class ApiApplicationHalJoomla extends ApiApplicationHal
 		}
 	
 		// Only showing requested fields.
-		if ($options['fields'] != '')
+		if (isset($options['fields']) && ($options['fields'] != ''))
 		{
 			$fields = explode(',', $options['fields']);
 			if ($this->resourceMap)
