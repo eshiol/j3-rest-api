@@ -105,7 +105,7 @@ try
 	// Prepare the application
 	$application->loadSession()
 		->loadDatabase();
-	
+
 	$identity = null;
 	// See if the client has sent authorization headers
 	if (strpos(PHP_SAPI, 'cgi') !== false)
@@ -133,7 +133,7 @@ try
 					->where('username=' . $db->q($parts[0]));
 				$db->setQuery($query);
 				$result = $db->loadObject();
-	
+
 				if ($result)
 				{
 					$match = JUserHelper::verifyPassword($parts[1], $result->password, $result->id);
@@ -145,12 +145,12 @@ try
 			}
 		}
 	}
-	
+
 	if ($application->get('debug', false))
 	{
 		JLog::addLogger(['text_file' => $application->get('log', 'eshiol.log.php'), 'extension' => 'api_default'], JLog::DEBUG, array('api'));
 	}
-	
+
 	// Execute the application.
 	$application->loadIdentity($identity)
 		->loadDispatcher()

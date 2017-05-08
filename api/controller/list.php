@@ -17,7 +17,8 @@ abstract class ApiControllerList extends ApiControllerBase
 	 * Execute the request.
 	 */
 	public function execute()
-	{JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
+	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		// Are we linking from categories?
 		$this->catid = (int) $this->input->get('catid');
 
@@ -42,7 +43,8 @@ abstract class ApiControllerList extends ApiControllerBase
 	 * @return array  Array of data records.
 	 */
 	public function getData()
-	{JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
+	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		// Get the database query object.
 		$query = $this->getQuery($this->tableName);
 
@@ -66,7 +68,8 @@ abstract class ApiControllerList extends ApiControllerBase
 	 * @return array Array of pagination variables.
 	 */
 	public function getPagination()
-	{JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
+	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		// Set pagination variables from input.
 		$pagination = array(
 			'offset'  => (int) $this->input->get('offset', 0),
@@ -87,7 +90,8 @@ abstract class ApiControllerList extends ApiControllerBase
 	 * @return JDatabaseDriver object.
 	 */
 	public function getQuery($table)
-	{JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
+	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		// Get the base query.
 		$query = parent::getQuery($table);
 
@@ -98,7 +102,7 @@ abstract class ApiControllerList extends ApiControllerBase
 
 		// Get the user
 		$user = $this->app->getIdentity();
-		
+	
 		// Filter by access level.
 		if ($user->guest != 1)
 		{
@@ -109,7 +113,7 @@ abstract class ApiControllerList extends ApiControllerBase
 		{
 			$query->where('access = 1');
 		}
-		
+	
 		JLog::add(new JLogEntry($query, JLOG::DEBUG, 'api'));
 		return $query;
 	}

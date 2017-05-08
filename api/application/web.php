@@ -72,7 +72,7 @@ class ApiApplicationWeb extends JApplicationWeb
 
 		// Load the Joomla API configuration object.
 		$this->loadConfiguration($this->fetchApiConfigurationData());
-		
+	
 		// By default, assume response may be cached.
 		$this->allowCache(true);
 	}
@@ -196,7 +196,7 @@ class ApiApplicationWeb extends JApplicationWeb
 		// Load the JPluginHelper class
 		JLoader::register('JPlugin', JPATH_PLATFORM . '/cms/plugin/plugin.php');
 		JLoader::register('JPluginHelper', JPATH_PLATFORM . '/cms/plugin/helper.php');
-		
+	
 		// Trigger the authentication plugins.
 		JPluginHelper::importPlugin('authentication');
 
