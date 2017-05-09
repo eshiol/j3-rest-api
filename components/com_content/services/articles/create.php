@@ -46,8 +46,15 @@ class ComponentContentArticlesCreate extends ApiControllerItem
 		$vars = $this->app->input->get->getArray();
 		if (isset($vars['checkout']))
 		{
-			return parent::checkOut();
+			parent::checkOut();
 		}
+		if (isset($vars['checkin']))
+		{
+			parent::checkIn();
+		}
+		// Set the correct header
+		header('Status: 200 Ok', true, 200);
+		exit;
 	}
 
 }

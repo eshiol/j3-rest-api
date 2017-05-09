@@ -328,4 +328,100 @@ abstract class ApiControllerItem extends ApiControllerBase
 
 		return parent::execute();
 	}	
+
+	/**
+	 * Method to check a row in if the necessary properties/fields exist.
+	 *
+	 * Checking a row in will allow other users the ability to edit the row.
+	 *
+	 * @return  boolean  True on success.
+	 *
+	 * @since   11.1
+	 * @throws  UnexpectedValueException
+	 */
+	public function checkIn($tableClass = false, $tablePrefix = 'JTable', $tablePath = array())
+	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
+	
+		// Get the correct table class
+		$tableClass = ($tableClass === false) ? $this->tableClass : $tableClass;
+	
+		// Get the correct table prefix
+		$tablePrefix = ($tablePrefix != 'JTable') ? $tablePrefix : 'JTable';
+	
+		// Include the legacy table classes
+		JTable::addIncludePath(JPATH_LIBRARIES . '/legacy/table/');
+	
+		// Include the cms table classes
+		JTable::addIncludePath(JPATH_LIBRARIES . '/cms/table/');
+	
+		// Include the custom table path if exists
+		if (count($tablePath))
+		{
+			foreach ($tablePath as $path)
+			{
+				JTable::addIncludePath($path);
+			}
+		}
+	
+		// Declare the JTable class
+		$table = JTable::getInstance($tableClass, $tablePrefix, array('dbo' => $this->db));
+	
+		// Load data
+		$this->id = (int) $this->input->get('id');
+		if (!$table->load($this->id))
+		{
+			header('Status: 404 Not Found', true, 404);
+			exit;
+		}
+	
+		// Load asset
+		$asset = JTable::getInstance('Asset', 'JTable', array('dbo' => $this->db));
+		$asset->load($table->asset_id);
+	
+		// Get the user
+		$user = $this->app->getIdentity();
+	
+		// Check access
+		if (!$user->authorise('core.edit', $asset->name))
+		{
+			header('Status: 401 Unauthorised status', true, 401);
+	
+			$response = array(
+				'error' => 'bad request',
+				'error_description' => JText::_('JLIB_APPLICATION_ERROR_EDIT_NOT_PERMITTED')
+			);
+	
+			echo json_encode($response);
+			exit;
+		}
+	
+		// Verify checkout
+		if ($table->checked_out != 0 && $table->checked_out != $user->id)
+		{
+			header('Status: 401 Unauthorised status', true, 401);
+	
+			$response = array(
+				'error' => 'bad request',
+				'error_description' => JText::sprintf('JLIB_APPLICATION_ERROR_CHECKOUT_FAILED', JText::_('JLIB_APPLICATION_ERROR_CHECKOUT_USER_MISMATCH'))
+			);
+	
+			echo json_encode($response);
+			exit;
+		}
+	
+		// checkin item
+		try
+		{
+			$table->checkIn($this->id);
+		}
+		catch (Exception $e)
+		{
+			$this->app->setHeader('status', '404', true);
+	
+			// An exception has been caught, echo the message and exit.
+			echo json_encode(array('message' => $e->getMessage(), 'code' => $e->getCode(), 'type' => get_class($e)));
+			exit;
+		}
+	}
 }
