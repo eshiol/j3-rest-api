@@ -6,6 +6,13 @@
  * @license     GNU General Public License version 2 or later; see LICENSE.txt
  */
 
+jimport('cms.helper.helper');
+jimport('cms.helper.tags');
+jimport('cms.helper.contenthistory');
+jimport('cms.component.helper');
+jimport('cms.application.helper');
+jimport('cms.component.record');
+
 abstract class ApiControllerItem extends ApiControllerBase
 {
 	/*
@@ -79,14 +86,6 @@ abstract class ApiControllerItem extends ApiControllerBase
 		// Get the correct table prefix
 		$tablePrefix = ($tablePrefix != 'JTable') ? $tablePrefix : 'JTable';
 	
-		// Include the tags
-		jimport('cms.helper.helper');
-		jimport('cms.helper.tags');
-		jimport('cms.helper.contenthistory');
-		jimport('cms.component.helper');
-		jimport('cms.application.helper');
-		jimport('cms.component.record');
-		
 		// Include the legacy table classes
 		JTable::addIncludePath(JPATH_LIBRARIES . '/legacy/table/');
 	
@@ -128,8 +127,6 @@ abstract class ApiControllerItem extends ApiControllerBase
 	/**
 	 * Method to delete a row from the database table by primary key value.
 	 *
-	 * @param   mixed  $pk  An optional primary key value to delete.  If not set the instance property value is used.
-	 *
 	 * @return  boolean  True on success.
 	 */
 	public function delete($tableClass = false, $tablePrefix = 'JTable', $tablePath = array())
@@ -144,14 +141,6 @@ abstract class ApiControllerItem extends ApiControllerBase
 		// Get the correct table prefix
 		$tablePrefix = ($tablePrefix != 'JTable') ? $tablePrefix : 'JTable';
 		
-		// Include the tags
-		jimport('cms.helper.helper');
-		jimport('cms.helper.tags');
-		jimport('cms.helper.contenthistory');
-		jimport('cms.component.helper');
-		jimport('cms.application.helper');
-		jimport('cms.component.record');
-
 		// Include the legacy table classes
 		JTable::addIncludePath(JPATH_LIBRARIES . '/legacy/table/');
 		
@@ -166,7 +155,7 @@ abstract class ApiControllerItem extends ApiControllerBase
 				JTable::addIncludePath($path);
 			}
 		}
-		
+
 		// Declare the JTable class
 		$table = JTable::getInstance($tableClass, $tablePrefix, array('dbo' => $this->db));
 		
@@ -189,21 +178,21 @@ abstract class ApiControllerItem extends ApiControllerBase
 		if (!$user->authorise('core.delete', $asset->name))
 		{
 			header('Status: 400 Bad Request', true, 400);
-				
+	
 			$response = array(
 				'error' => 'bad request',
 				'error_description' => JText::_('JLIB_APPLICATION_ERROR_DELETE_NOT_PERMITTED')
 			);
-				
+
 			echo json_encode($response);
 			exit;
 		}
-		
+
 		// Verify checkout
 		if ($table->checked_out != 0 && $table->checked_out != $user->id)
 		{
 			header('Status: 400 Bad Request', true, 400);
-		
+
 			$response = array(
 				'error' => 'bad request',
 				'error_description' => JText::sprintf('JLIB_APPLICATION_ERROR_CHECKOUT_FAILED', JText::_('JLIB_APPLICATION_ERROR_CHECKOUT_USER_MISMATCH'))
@@ -212,8 +201,8 @@ abstract class ApiControllerItem extends ApiControllerBase
 			echo json_encode($response);
 			exit;
 		}
-		
-		// Delete object
+
+		// Delete item
 		try
 		{
 			$table->delete($this->id);
@@ -228,4 +217,115 @@ abstract class ApiControllerItem extends ApiControllerBase
 		}
 		return $return;
 	}
+
+	/**
+	 * Method to check a row out if the necessary properties/fields exist.
+	 *
+	 * To prevent race conditions while editing rows in a database, a row can be checked out if the fields 'checked_out' and 'checked_out_time'
+	 * are available. While a row is checked out, any attempt to store the row by a user other than the one who checked the row out should be
+	 * held until the row is checked in again.
+	 *
+	 * @return  boolean  True on success.
+	 *
+	 * @throws  UnexpectedValueException
+	 */
+	public function checkOut($tableClass = false, $tablePrefix = 'JTable', $tablePath = array())
+	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
+		
+		// Get the correct table class
+		$tableClass = ($tableClass === false) ? $this->tableClass : $tableClass;
+		
+		// Get the correct table prefix
+		$tablePrefix = ($tablePrefix != 'JTable') ? $tablePrefix : 'JTable';
+		
+		// Include the legacy table classes
+		JTable::addIncludePath(JPATH_LIBRARIES . '/legacy/table/');
+		
+		// Include the cms table classes
+		JTable::addIncludePath(JPATH_LIBRARIES . '/cms/table/');
+		
+		// Include the custom table path if exists
+		if (count($tablePath))
+		{
+			foreach ($tablePath as $path)
+			{
+				JTable::addIncludePath($path);
+			}
+		}
+
+		// Declare the JTable class
+		$table = JTable::getInstance($tableClass, $tablePrefix, array('dbo' => $this->db));
+
+		// Load data
+		$this->id = (int) $this->input->get('id');
+		if (!$table->load($this->id))
+		{
+			header('Status: 404 Not Found', true, 404);
+			exit;
+		}
+
+		// Load asset
+		$asset = JTable::getInstance('Asset', 'JTable', array('dbo' => $this->db));
+		$asset->load($table->asset_id);
+
+		// Get the user
+		$user = $this->app->getIdentity();
+
+		// Check access
+		if (!$user->authorise('core.edit', $asset->name))
+		{
+			header('Status: 401 Unauthorised status', true, 401);
+
+			$response = array(
+				'error' => 'bad request',
+				'error_description' => JText::_('JLIB_APPLICATION_ERROR_EDIT_NOT_PERMITTED')
+			);
+
+			echo json_encode($response);
+			exit;
+		}
+
+		// Verify checkout
+		if ($table->checked_out != 0 && $table->checked_out != $user->id)
+		{
+			header('Status: 401 Unauthorised status', true, 401);
+
+			$response = array(
+				'error' => 'bad request',
+				'error_description' => JText::sprintf('JLIB_APPLICATION_ERROR_CHECKOUT_FAILED', JText::_('JLIB_APPLICATION_ERROR_CHECKOUT_USER_MISMATCH'))
+			);
+
+			echo json_encode($response);
+			exit;
+		}
+
+		// checkout item
+		try
+		{
+			$table->checkOut($user->id, $this->id);
+		}
+		catch (Exception $e)
+		{
+			$this->app->setHeader('status', '404', true);
+
+			// An exception has been caught, echo the message and exit.
+			echo json_encode(array('message' => $e->getMessage(), 'code' => $e->getCode(), 'type' => get_class($e)));
+			exit;
+		}
+
+		// Get resource item id from input.
+		$this->id = (int) $this->input->get('id');
+
+		// Get resource item data.
+		$data = $this->getData();
+
+		// Get service object.
+		$service = $this->getService();
+
+		// Load the data into the HAL object.
+		$service->load($data);
+
+		return parent::execute();
+	}	
 }
