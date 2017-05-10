@@ -32,6 +32,12 @@ abstract class ApiControllerItem extends ApiControllerBase
 		// Get resource item data.
 		$data = $this->getData();
 
+		if (is_null($data))
+		{
+			header('Status: 404 Not Found', true, 404);
+			exit;
+		}
+		
 		// Get service object.
 		$service = $this->getService();
 
