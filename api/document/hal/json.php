@@ -65,14 +65,21 @@ class ApiDocumentHalJson extends JDocument
 	{
 		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		JResponse::allowCache($cache);
-		JResponse::setHeader('Content-disposition', 'attachment; filename="' . $this->getName() . '.json"', true);
 
 		// Unfortunately, the exact syntax of the Content-Type header
 		// is not defined, so we have to try to be a bit clever here.
 		$contentType = $this->_mime;
-		if (stripos($contentType, 'json') === false)
+		if (JFactory::getApplication()->input->get->getString('callback', false) !== false)
 		{
-			$contentType .= '+' . $this->_type;
+			$contentType = 'application/javascript';
+		}
+		else
+		{
+			JResponse::setHeader('Content-disposition', 'attachment; filename="' . $this->getName() . '.json"', true);
+			if (stripos($contentType, 'json') === false)
+			{
+				$contentType .= '+' . $this->_type;
+			}
 		}
 		$this->_mime = $contentType;
 

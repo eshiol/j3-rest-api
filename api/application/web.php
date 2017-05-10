@@ -391,6 +391,41 @@ class ApiApplicationWeb extends JApplicationWeb
 		$this->mimeType = $this->getDocument()->getMimeEncoding();
 		$this->charSet  = $this->getDocument()->getCharset();
 
+		$body = $this->getBody();
+
+		// Check if the request is CORS ( Cross-origin resource sharing ) and change the body if true
+		$body = (string)$this->prepareBody($body);
+
+		$this->setBody($body);
+
 		parent::respond();
+	}
+
+
+	/**
+	 * Return the JSON message for CORS or simple request.
+	 *
+	 * @param   string	$message	The return message
+	 *
+	 * @return  string	$body	    The message prepared if CORS is enabled, or same if false.
+	 *
+	 * @since   1.0
+	 * @throws  InvalidArgumentException
+	 */
+	public function prepareBody($message)
+	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
+		$callback = $this->input->get->getString('callback', false);
+
+		if ($callback !== false)
+		{
+			$body = $callback . "(".$message.")";
+		}
+		else
+		{
+			$body = $message;
+		}
+
+		return $body;
 	}
 }
