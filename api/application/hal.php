@@ -27,6 +27,7 @@ class ApiApplicationHal
 	 */
 	public function addLink(ApiApplicationHalLink $link)
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		// If there is no _links property, create it.
 		if (!isset($this->properties['_links']))
 		{
@@ -59,6 +60,7 @@ class ApiApplicationHal
 	 */
 	public function embed($name, $data)
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		// If there is no _embedded property, create it.
 		if (!isset($this->properties['_embedded']))
 		{
@@ -80,6 +82,7 @@ class ApiApplicationHal
 	 */
 	public function get($name, $default = null)
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		return isset($this->properties[$name]) ? $this->properties[$name] : $default;
 	}
 
@@ -90,6 +93,7 @@ class ApiApplicationHal
 	 */
 	public function getHal()
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		$hal = new stdClass;
 
 		// Links with the same link relation name are stored in an array, but if
@@ -140,6 +144,7 @@ class ApiApplicationHal
 	 */
 	public function load($object)
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		foreach ($object as $name => $value)
 		{
 			// For _links and _embedded, we merge rather than replace.
@@ -166,6 +171,7 @@ class ApiApplicationHal
 	 */
 	public function set($name, $value)
 	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		$this->properties[$name] = $value;
 
 		return $this;
