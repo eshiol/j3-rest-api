@@ -138,8 +138,9 @@ abstract class ApiControllerItem extends ApiControllerBase
 	public function delete($tableClass = false, $tablePrefix = 'JTable', $tablePath = array())
 	{
 		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
-		// Declare return
-		$return = false;
+		
+		// Get resource item id from input.
+		$this->id = (int) $this->input->get('id');
 		
 		// Get the correct table class
 		$tableClass = ($tableClass === false) ? $this->tableClass : $tableClass;
@@ -166,7 +167,6 @@ abstract class ApiControllerItem extends ApiControllerBase
 		$table = JTable::getInstance($tableClass, $tablePrefix, array('dbo' => $this->db));
 		
 		// Load data
-		$this->id = (int) $this->input->get('id');
 		if (!$table->load($this->id))
 		{
 			header('Status: 404 Not Found', true, 404);
@@ -239,6 +239,9 @@ abstract class ApiControllerItem extends ApiControllerBase
 	{
 		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		
+		// Get resource item id from input.
+		$this->id = (int) $this->input->get('id');
+		
 		// Get the correct table class
 		$tableClass = ($tableClass === false) ? $this->tableClass : $tableClass;
 		
@@ -264,7 +267,6 @@ abstract class ApiControllerItem extends ApiControllerBase
 		$table = JTable::getInstance($tableClass, $tablePrefix, array('dbo' => $this->db));
 
 		// Load data
-		$this->id = (int) $this->input->get('id');
 		if (!$table->load($this->id))
 		{
 			header('Status: 404 Not Found', true, 404);
@@ -320,9 +322,6 @@ abstract class ApiControllerItem extends ApiControllerBase
 			exit;
 		}
 
-		// Get resource item id from input.
-		$this->id = (int) $this->input->get('id');
-
 		// Get resource item data.
 		$data = $this->getData();
 
@@ -332,7 +331,7 @@ abstract class ApiControllerItem extends ApiControllerBase
 		// Load the data into the HAL object.
 		$service->load($data);
 
-		return parent::execute();
+		parent::execute();
 	}	
 
 	/**
@@ -348,7 +347,10 @@ abstract class ApiControllerItem extends ApiControllerBase
 	public function checkIn($tableClass = false, $tablePrefix = 'JTable', $tablePath = array())
 	{
 		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
-	
+
+		// Get resource item id from input.
+		$this->id = (int) $this->input->get('id');
+		
 		// Get the correct table class
 		$tableClass = ($tableClass === false) ? $this->tableClass : $tableClass;
 	
@@ -374,7 +376,6 @@ abstract class ApiControllerItem extends ApiControllerBase
 		$table = JTable::getInstance($tableClass, $tablePrefix, array('dbo' => $this->db));
 	
 		// Load data
-		$this->id = (int) $this->input->get('id');
 		if (!$table->load($this->id))
 		{
 			header('Status: 404 Not Found', true, 404);
@@ -429,5 +430,146 @@ abstract class ApiControllerItem extends ApiControllerBase
 			echo json_encode(array('message' => $e->getMessage(), 'code' => $e->getCode(), 'type' => get_class($e)));
 			exit;
 		}
+		
+		// Get resource item data.
+		$data = $this->getData();
+		
+		// Get service object.
+		$service = $this->getService();
+		
+		// Load the data into the HAL object.
+		$service->load($data);
+		
+		parent::execute();
+	}
+
+	/**
+	 * Method to update a row from the database table by primary key value.
+	 *
+	 * @return  boolean  True on success.
+	 */
+	public function update($tableClass = false, $tablePrefix = 'JTable', $tablePath = array())
+	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
+
+		// Get resource item id from input.
+		$this->id = (int) $this->input->get('id');
+		
+		// Get the database query object.
+		$query = $this->db->getQuery(true);
+		
+		// Get a database query helper object.
+		$apiQuery = $this->getApiQuery();
+		
+		// Get the correct table class
+		$tableClass = ($tableClass === false) ? $this->tableClass : $tableClass;
+		
+		// Get the correct table prefix
+		$tablePrefix = ($tablePrefix != 'JTable') ? $tablePrefix : 'JTable';
+		
+		// Include the legacy table classes
+		JTable::addIncludePath(JPATH_LIBRARIES . '/legacy/table/');
+		
+		// Include the cms table classes
+		JTable::addIncludePath(JPATH_LIBRARIES . '/cms/table/');
+		
+		// Include the custom table path if exists
+		if (count($tablePath))
+		{
+			foreach ($tablePath as $path)
+			{
+				JTable::addIncludePath($path);
+			}
+		}
+		
+		// Declare the JTable class
+		$table = JTable::getInstance($tableClass, $tablePrefix, array('dbo' => $this->db));
+		
+		// Load data
+		if (!$table->load($this->id))
+		{
+			header('Status: 404 Not Found', true, 404);
+			exit;
+		}
+		
+		// Load asset
+		$asset = JTable::getInstance('Asset', 'JTable', array('dbo' => $this->db));
+		$asset->load($table->asset_id);
+		
+		// Get the user
+		$user = $this->app->getIdentity();
+		
+		// Check access
+		if (!$user->authorise('core.edit', $asset->name))
+		{
+			header('Status: 401 Unauthorised status', true, 401);
+		
+			$response = array(
+					'error' => 'bad request',
+					'error_description' => JText::_('JLIB_APPLICATION_ERROR_EDIT_NOT_PERMITTED')
+			);
+		
+			echo json_encode($response);
+			exit;
+		}
+		
+		// Verify checkout
+		if ($table->checked_out != 0 && $table->checked_out != $user->id)
+		{
+			header('Status: 401 Unauthorised status', true, 401);
+		
+			$response = array(
+					'error' => 'bad request',
+					'error_description' => JText::sprintf('JLIB_APPLICATION_ERROR_CHECKOUT_FAILED', JText::_('JLIB_APPLICATION_ERROR_CHECKOUT_USER_MISMATCH'))
+			);
+		
+			echo json_encode($response);
+			exit;
+		}
+		
+		// checkin item
+		try
+		{
+			// Get service object.
+			$service = $this->getService();
+			
+			// Get the resource map
+			$resourceMap = $service->getResourceMap();
+			
+			// Get resource item from input.
+			$targetData = json_decode(file_get_contents("php://input"));
+			$targetData->id = $this->id;
+			$targetData->modified_by = $this->app->getIdentity()->get('id');
+
+			if ($resourceMap)
+			{
+				$targetData = $resourceMap->toInternal($targetData);
+			}
+
+			JLog::add(new JLogEntry('targetData: '.print_r($targetData, true), JLOG::DEBUG, 'api'));
+
+			$return = $apiQuery->postItem($query, $table, $targetData);
+		}
+		catch (Exception $e)
+		{
+			$this->app->setHeader('status', '404', true);
+		
+			// An exception has been caught, echo the message and exit.
+			echo json_encode(array('message' => $e->getMessage(), 'code' => $e->getCode(), 'type' => get_class($e)));
+			exit;
+		}
+
+		// Get resource item data.
+		$data = $this->getData();
+		
+		// Get service object.
+		$service = $this->getService();
+		
+		// Load the data into the HAL object.
+		$service->load($data);
+		
+		parent::execute();
+		
+		return $return;
 	}
 }
