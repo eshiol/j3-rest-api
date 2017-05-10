@@ -52,9 +52,6 @@ class ComponentContentArticlesCreate extends ApiControllerItem
 		{
 			parent::checkIn();
 		}
-		// Set the correct header
-		header('Status: 200 Ok', true, 200);
-		exit;
 	}
 
 }

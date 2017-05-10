@@ -527,7 +527,7 @@ abstract class ApiControllerItem extends ApiControllerBase
 			exit;
 		}
 		
-		// checkin item
+		// update item
 		try
 		{
 			// Get service object.
