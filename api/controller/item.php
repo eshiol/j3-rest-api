@@ -69,6 +69,28 @@ abstract class ApiControllerItem extends ApiControllerBase
 			}
 		}
 
+		// Check If-None-Match
+		if (isset($_SERVER['HTTP_IF_NONE_MATCH']))
+		{
+			$ifNoneMatch = $_SERVER['HTTP_IF_NONE_MATCH'];
+			if ($ifNoneMatch == '*')
+			{
+				header($_SERVER['SERVER_PROTOCOL'].' 304 Not Modified');
+				exit;
+			}
+			$ifNoneMatch = explode(',', $ifNoneMatch);
+			array_walk($ifNoneMatch, function(&$v, &$k) {
+				$v = trim($v, ' ');
+				$v = trim($v, '"');
+			});
+			JLog::add(new JLogEntry('If-None-Match: '.print_r($ifNoneMatch, true), JLOG::DEBUG, 'api'));
+			if (in_array($etag, $ifNoneMatch))
+			{
+				header($_SERVER['SERVER_PROTOCOL'].' 304 Not Modified');
+				exit;
+			}
+		}
+
 		parent::execute();
 	}
 
