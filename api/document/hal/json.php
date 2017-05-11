@@ -110,6 +110,12 @@ class ApiDocumentHalJson extends JDocument
 			}
 		}
 
+		//set etag
+		header('Etag: '.$hal->_meta->etag);
+
+		//make sure caching is turned on
+		header('Cache-Control: public');
+
 		// Return it as a JSON string.
 		return json_encode($hal);
 	}

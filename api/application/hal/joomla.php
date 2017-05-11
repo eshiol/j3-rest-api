@@ -180,6 +180,7 @@ class ApiApplicationHalJoomla extends ApiApplicationHal
 	public function getHal()
 	{
 		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
+		$this->meta->etag = md5(json_encode($this->properties));
 		$this->set('_meta', $this->meta);
 
 		$hal = parent::getHal();
