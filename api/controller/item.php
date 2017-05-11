@@ -109,6 +109,23 @@ abstract class ApiControllerItem extends ApiControllerBase
 			}
 		}
 
+		// Check If-Modified-Since
+		if (isset($_SERVER['HTTP_IF_MODIFIED_SINCE']))
+		{
+			if ($ifModifiedSince = strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']))
+			{
+				JLog::add(new JLogEntry('If-Modified-Since: '.$_SERVER['HTTP_IF_MODIFIED_SINCE'].' ('.$ifModifiedSince.')', JLOG::DEBUG, 'api'));
+				if ($lastModified <= time())
+				{
+					if ($lastModified <= $ifModifiedSince)
+					{
+						header($_SERVER['SERVER_PROTOCOL'].' 304 Not Modified');
+						exit;
+					}
+				}
+			}
+		}
+
 		parent::execute();
 	}
 
