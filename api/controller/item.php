@@ -44,6 +44,31 @@ abstract class ApiControllerItem extends ApiControllerBase
 		// Load the data into the HAL object.
 		$service->load($data);
 
+		// Get ETag
+		$hal = $service->getHal();
+		$etag = $hal->_meta->etag;
+		JLog::add(new JLogEntry('etag: '.$etag, JLOG::DEBUG, 'api'));
+		
+		// Check If-Match
+		if (isset($_SERVER['HTTP_IF_MATCH']))
+		{
+			$ifMatch = $_SERVER['HTTP_IF_MATCH'];
+			if ($ifMatch != '*')
+			{
+				$ifMatch = explode(',', $ifMatch);
+				array_walk($ifMatch, function(&$v, &$k) {
+					$v = trim($v, ' ');
+					$v = trim($v, '"');
+				});
+				JLog::add(new JLogEntry('If-Match: '.print_r($ifMatch, true), JLOG::DEBUG, 'api'));
+				if (!in_array($etag, $ifMatch))
+				{
+					header($_SERVER['SERVER_PROTOCOL'].' 412 Precondition Failed');
+					exit;
+				}
+			}
+		}
+
 		parent::execute();
 	}
 
