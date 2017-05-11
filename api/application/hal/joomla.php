@@ -190,6 +190,18 @@ class ApiApplicationHalJoomla extends ApiApplicationHal
 			}
 		}
 		$this->meta->etag = md5(json_encode($properties));
+		if (isset($properties->publish->modified))
+		{
+			$this->meta->lastModified = $properties->publish->modified;
+		}
+		elseif (isset($properties->publish->created))
+		{
+			$this->meta->lastModified = isset($properties->publish->created);
+		}
+		else
+		{
+			$this->meta->lastModified = gmdate("Y-M-d H:i:s");
+		}		
 		$this->set('_meta', $this->meta);
 
 		$hal = parent::getHal();

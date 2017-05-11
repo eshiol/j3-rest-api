@@ -46,6 +46,7 @@
 	"publish/publishDown":"datetime:{publish_down}",
 	"publish/publishUp":"datetime:{publish_up}",
 	"publish/revision":"int:{version}",
+	"publish/modified":"datetime:{modified}",
 	"render/adminImagesLinksShow":"ynglobal:{attribs.show_urls_images_backend}",
 	"render/adminOptionsShow":"ynglobal:{attribs.show_article_options}",
 	"render/authorLink":"ynglobal:{attribs.link_author}",

@@ -110,6 +110,10 @@ class ApiDocumentHalJson extends JDocument
 			}
 		}
 
+		//set last-modified header
+		$lastModified = isset($hal->_meta->lastModified) ? strtotime($hal->_meta->lastModified) : time();
+		header("Last-Modified: ".gmdate("D, d M Y H:i:s", $lastModified)." GMT");
+		
 		//set etag
 		header('Etag: '.$hal->_meta->etag);
 
