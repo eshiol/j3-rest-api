@@ -48,7 +48,7 @@ abstract class ApiControllerItem extends ApiControllerBase
 		$hal = $service->getHal();
 		$etag = $hal->_meta->etag;
 		JLog::add(new JLogEntry('etag: '.$etag, JLOG::DEBUG, 'api'));
-		
+
 		// Check If-Match
 		if (isset($_SERVER['HTTP_IF_MATCH']))
 		{
@@ -62,6 +62,24 @@ abstract class ApiControllerItem extends ApiControllerBase
 				});
 				JLog::add(new JLogEntry('If-Match: '.print_r($ifMatch, true), JLOG::DEBUG, 'api'));
 				if (!in_array($etag, $ifMatch))
+				{
+					header($_SERVER['SERVER_PROTOCOL'].' 412 Precondition Failed');
+					exit;
+				}
+			}
+		}
+
+		// Get LastModified
+		$lastModified = strtotime($hal->_meta->lastModified);
+		JLog::add(new JLogEntry('lastModified: '.$hal->_meta->lastModified.' ('.$lastModified.')', JLOG::DEBUG, 'api'));
+		
+		// Check If-Unmodified-Since
+		if (isset($_SERVER['HTTP_IF_UNMODIFIED_SINCE']))
+		{
+			if ($ifUnmodifiedSince = strtotime($_SERVER['HTTP_IF_UNMODIFIED_SINCE']))
+			{
+				JLog::add(new JLogEntry('If-Unmodified-Since: '.$_SERVER['HTTP_IF_UNMODIFIED_SINCE'].' ('.$ifUnmodifiedSince.')', JLOG::DEBUG, 'api'));
+				if ($lastModified > $ifUnmodifiedSince)
 				{
 					header($_SERVER['SERVER_PROTOCOL'].' 412 Precondition Failed');
 					exit;
