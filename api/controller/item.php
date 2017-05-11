@@ -64,6 +64,40 @@ abstract class ApiControllerItem extends ApiControllerBase
 		// Get single record from database.
 		$data = $apiQuery->getItem($query, (int) $this->id);
 
+		// Get the user
+		$user = $this->app->getIdentity();
+		
+		if ($user->guest == 1)
+		{
+			if ($data->access != 1)
+			{
+				header('Status: 401 Unauthorized', true, 401);
+					
+				$response = array(
+						'error' => 'unauthorized',
+						'error_description' => JText::_('JERROR_ALERTNOAUTHOR')
+				);
+		
+				echo json_encode($response);
+				exit;
+			}
+		}
+		else
+		{
+			if (!in_array($data->access, $user->getAuthorisedViewLevels()))
+			{
+				header('Status: 403 Forbidden', true, 403);
+		
+				$response = array(
+						'error' => 'forbidden',
+						'error_description' => JText::_('JERROR_ALERTNOAUTHOR')
+				);
+					
+				echo json_encode($response);
+				exit;
+			}
+		}
+
 		return $data;
 	}
 
