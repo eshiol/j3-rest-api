@@ -447,7 +447,7 @@ class ApiApplicationResourcemap
 		$className = $this->getTransformClass($fieldType);
 
 		// Execute the transform.
-		if ($className instanceof ApiTransform)
+		if (new $className() instanceof ApiTransform)
 		{
 			return $className::toExternal($definition, $data);
 		}
