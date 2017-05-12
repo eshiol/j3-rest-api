@@ -314,4 +314,91 @@ class ApiApplicationHalJoomla extends ApiApplicationHal
 		return $this;
 	}
 
+	/**
+	 * expand Content-Type
+	 *
+	 * @param  string  $content_type  
+	 * @param  boolean $pattern
+	 *
+	 * @return array  content types
+	 */
+	public function expandContentType($content_type, $pattern = false)
+	{
+		JLog::add(new JLogEntry(__METHOD__."('{$content_type}', {$pattern})", JLOG::DEBUG, 'api'));
+		JLog::add(new JLogEntry($content_type, JLOG::DEBUG, 'api'));
+		if (isset($pattern)) JLog::add(new JLogEntry($pattern, JLOG::DEBUG, 'api'));
+				
+		$content_types = explode(',', $content_type);
+		array_walk($content_types, function(&$v, &$k) {
+			$v = trim($v, ' "');
+		});
+	
+		$temp = [];
+		foreach ($content_types as $mime_type)
+		{
+			if (strpos($mime_type, '+') !== false)
+			{ // Contains +
+				$arr = explode('/', $mime_type);
+				$type = $arr[0];
+				$medias = explode('+', $arr[1]);
+				foreach ($medias as $media)
+				{
+					array_push($temp, $type."/".$media);
+				}
+			}
+			else
+			{
+				array_push($temp, $mime_type);
+			}
+		}
+		$temp = array_unique($temp);
+
+		if ($pattern)
+		{
+			array_walk($temp, function(&$v1, $k1) {
+				$v1 = explode(';', $v1);
+				array_walk($v1, function(&$v2, $k2) {
+					$v2 = explode('.', $v2);
+					array_walk($v2, function(&$v3, $k3) {
+						$v3 = trim($v3, ' ');
+					});
+					$v3 = end($v2); 
+					while ($v4 = prev($v2))
+					{
+						$v3 = $v4.'(.'.$v3.')?';
+					}
+					$v2 = $v3;
+				});
+				$v2 = end($v1);
+				while ($v3 = prev($v1))
+				{
+					$v2 = $v3.'(; '.$v2.')?';
+				}
+				$v1 = '/'.str_replace('/', '\/', $v2).'/';
+			});
+		}
+		JLog::add(new JLogEntry(print_r($temp, true), JLOG::DEBUG, 'api'));
+		return $temp;
+	}
+	
+	public function isAccepted($accept)
+	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
+		
+		$accept = $this->expandContentType($accept);
+		$patterns = $this->expandContentType($this->meta->contentType.'+hal+json', true);
+		
+		if (in_array("*/*", $accept)) return true;
+		foreach($accept as $content_type)
+		{
+			foreach($patterns as $pattern)
+			{
+				if (preg_match($pattern, $content_type, $matches))
+				{
+					if ($content_type == $matches[0]) return true;
+				}
+			}
+		}
+		return false;
+	}
 }

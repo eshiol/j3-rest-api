@@ -46,36 +46,30 @@ abstract class ApiControllerItem extends ApiControllerBase
 
 		// Get HAL
 		$hal = $service->getHal();
+
 		// Check Accept
 		if (isset($_SERVER['HTTP_ACCEPT']))
 		{
-			$accepts = $_SERVER['HTTP_ACCEPT'];
+			$accept = $_SERVER['HTTP_ACCEPT'];
 		}
 		else
 		{
-			$accepts = $this->app->input->get('accept', null);
+			$accept = $this->app->input->get('accept', '*/*');
 		}
-		if (isset($accepts) && $accepts)
+		
+		if (!$service->isAccepted($accept))
 		{
-			$accept = explode(',', $accepts);
-			array_walk($accept, function(&$v, &$k) {
-				$v = trim($v, ' "');
-			});
-			JLog::add(new JLogEntry('accept: '.print_r($accept, true), JLOG::DEBUG, 'api'));
-			if (!in_array('*/*', $accept) && !in_array($hal->_meta->contentType, $accept))
-			{
-				header($_SERVER['SERVER_PROTOCOL'].' 415 Media type not supported');
-				header('Content-Type: application/api-problem+json');
-				
-				$response = array(
-					"describedby" => "http://docs.joomla.org/API_errors/v1/Media_type_not_recognised",
-					"title" => "Media type must be ".$hal->_meta->contentType,
-					"requested" => $accepts
-				);
+			header($_SERVER['SERVER_PROTOCOL'].' 415 Media type not supported');
+			header('Content-Type: application/api-problem+json');
+			
+			$response = array(
+				"describedby" => "http://docs.joomla.org/API_errors/v1/Media_type_not_recognised",
+				"title" => "Media type must be ".$hal->_meta->contentType.'+hal+json',
+				"requested" => $accept
+			);
 
-				echo json_encode($response);
-				exit;
-			}
+			echo json_encode($response);
+			exit;
 		}
 
 		// Get ETag
