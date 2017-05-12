@@ -53,12 +53,19 @@ class ComponentContentArticlesListCreate extends ApiControllerItem
 
 		// Get resource item from input.
 		$targetData = json_decode(file_get_contents("php://input"));
-
+		
+		// Check Content-Type
+		// @TODO: why not 415 Unsupported Media Type
+		if ($targetData->_meta->contentType != $this->contentType)
+		{
+			header('Status: 400 Bad Request', true, 400);
+			exit;
+		}
+		
 		if ($resourceMap)
 		{
 			$targetData = $resourceMap->toInternal($targetData);
 		}
-		JLog::add(new JLogEntry('targetData: '.print_r($targetData, true), JLOG::DEBUG, 'api'));
 
 		// Store the target data
 		$this->postData($targetData);
@@ -66,6 +73,26 @@ class ComponentContentArticlesListCreate extends ApiControllerItem
 		// Set the correct header if resource is created
 		header('Status: 201 Created', true, 201);
 
+		// Check Prefer: return=representation	
+		if (isset($_SERVER['HTTP_PREFER']))
+		{
+			$prefers = explode(';', $_SERVER['HTTP_PREFER']);
+			array_walk($prefers, function(&$v, &$k) {
+				$v = trim($v, ' "');
+			});
+			foreach ($prefers as $prefer)
+			{
+				if ($prefer == 'return=rapresentation')
+				{
+					// Push results into the document.
+					$this->app->getDocument()
+						->setMimeEncoding($this->contentType)		// Comment this line out to debug
+						->setBuffer($service->load($this->getData())->getHal())
+						;
+					return;
+				}
+			}
+		}
 		exit;
 	}
 
