@@ -56,12 +56,12 @@ abstract class ApiControllerItem extends ApiControllerBase
 		{
 			$accept = $this->app->input->get('accept', '*/*');
 		}
-		
+
 		if (!$service->isAccepted($accept))
 		{
 			header($_SERVER['SERVER_PROTOCOL'].' 415 Media type not supported');
 			header('Content-Type: application/api-problem+json');
-			
+
 			$response = array(
 				"describedby" => "http://docs.joomla.org/API_errors/v1/Media_type_not_recognised",
 				"title" => "Media type must be ".$hal->_meta->contentType.'+hal+json',
@@ -334,6 +334,7 @@ abstract class ApiControllerItem extends ApiControllerBase
 		if (!$user->authorise('core.delete', $asset->name))
 		{
 			header('Status: 400 Bad Request', true, 400);
+			header('Content-Type: application/json');
 
 			$response = array(
 				'error' => 'bad request',
@@ -344,18 +345,49 @@ abstract class ApiControllerItem extends ApiControllerBase
 			exit;
 		}
 
-		// Verify checkout
-		if ($table->checked_out != 0 && $table->checked_out != $user->id)
+		// Check If-Match
+		$ifMatch = isset($_SERVER['HTTP_IF_MATCH']) ? $_SERVER['HTTP_IF_MATCH'] : '*';
+		if ($ifMatch != '*')
 		{
-			header('Status: 400 Bad Request', true, 400);
+			// Get resource item data.
+			$data = $this->getData();
 
-			$response = array(
-				'error' => 'bad request',
-				'error_description' => JText::sprintf('JLIB_APPLICATION_ERROR_CHECKOUT_FAILED', JText::_('JLIB_APPLICATION_ERROR_CHECKOUT_USER_MISMATCH'))
-			);
+			// Get service object.
+			$service = $this->getService();
 
-			echo json_encode($response);
-			exit;
+			// Load the data into the HAL object.
+			$service->load($data);
+
+			// Get HAL
+			$hal = $service->getHal();
+
+			// Get ETag
+			$etag = $hal->_meta->etag;
+
+			$ifMatch = explode(',', $ifMatch);
+			array_walk($ifMatch, function(&$v, &$k) {
+				$v = trim($v, ' "');
+			});
+			JLog::add(new JLogEntry('If-Match: '.print_r($ifMatch, true), JLOG::DEBUG, 'api'));
+			if (!in_array($etag, $ifMatch))
+			{
+				header('Status: 412 Precondition Failed', true, 412);
+				exit;
+			}
+
+			// Verify checkout
+			if ($table->checked_out != 0 && $table->checked_out != $user->id)
+			{
+				header('Status: 400 Bad Request', true, 400);
+
+				$response = array(
+					'error' => 'bad request',
+					'error_description' => JText::sprintf('JLIB_APPLICATION_ERROR_CHECKOUT_FAILED', JText::_('JLIB_APPLICATION_ERROR_CHECKOUT_USER_MISMATCH'))
+				);
+
+				echo json_encode($response);
+				exit;
+			}
 		}
 
 		// Delete item
@@ -365,10 +397,13 @@ abstract class ApiControllerItem extends ApiControllerBase
 		}
 		catch (Exception $e)
 		{
-			$this->app->setHeader('status', '404', true);
+			header('Status: 500', true, 500);
 
 			// An exception has been caught, echo the message and exit.
-			echo json_encode(array('message' => $e->getMessage(), 'code' => $e->getCode(), 'type' => get_class($e)));
+			$response = array(
+			);
+
+			echo json_encode($response);
 			exit;
 		}
 		return true;
