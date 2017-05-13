@@ -64,7 +64,7 @@ class ApiApplicationResourcemap
 	 */
 	public function getField($fieldName, $default = '')
 	{
-		JLog::add(new JLogEntry(__METHOD__.'('.$fieldName.')', JLOG::DEBUG, 'api'));
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		return isset($this->map[$fieldName]) ? $this->map[$fieldName] : $default;
 	}
 
@@ -183,9 +183,9 @@ class ApiApplicationResourcemap
 	 */
 	private function getValue($fieldName, $data)
 	{
-		JLog::add(new JLogEntry(__METHOD__.'('.$fieldName.')', JLOG::DEBUG, 'api'));
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		// Static array of unpacked json fields.
-		static $unpacked = array();
+		$unpacked = array();
 
 		$return = null;
 
@@ -229,7 +229,7 @@ class ApiApplicationResourcemap
 	 */
 	public function isAvailable($fieldName)
 	{
-		JLog::add(new JLogEntry(__METHOD__.'('.$fieldName.')', JLOG::DEBUG, 'api'));
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		return isset($this->map[$fieldName]);
 	}
 
@@ -244,8 +244,6 @@ class ApiApplicationResourcemap
 	public function toExternal($data, array $include = array())
 	{
 		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
-		JLog::add(new JLogEntry('data: '.print_r($data, true), JLOG::DEBUG, 'api'));
-		JLog::add(new JLogEntry('include: '.print_r($include, true), JLOG::DEBUG, 'api'));
 		// If there is no map then return the data unmodified.
 		if (empty($this->map))
 		{
@@ -258,7 +256,6 @@ class ApiApplicationResourcemap
 		// Run through each mapped field.
 		foreach ($this->map as $halField => $sourceDefinition)
 		{
-			JLog::add(new JLogEntry('halField: '.$halField, JLOG::DEBUG, 'api'));
 			// Check that the field is to be included.
 			if (!empty($include) && !in_array($halField, $include))
 			{
@@ -318,7 +315,7 @@ class ApiApplicationResourcemap
 			if ($objName != 'main')
 			{
 				$targetData['main']->$objName = $targetData[$objName];
-				unset( $targetData[$objName]);
+				unset($targetData[$objName]);
 			}
 		}
 
@@ -345,41 +342,41 @@ class ApiApplicationResourcemap
 		$targetData = array();
 		// Initialise the parameters store.
 		$paramsData = array();
-	
+
 		// Run through each mapped field.
 		foreach ($this->map as $halField => $sourceDefinition)
 		{
 			// Get the first character
 			$first = substr($halField, 0, 1);
-	
+
 			// Ignore Api parameters
 			if ($first == "_")
 			{
 				continue;
 			}
-	
+
 			// Source definition fields must be in the form type:definition.
 			// Locate first occurrence of a colon.
 			$pos = strpos($sourceDefinition, ':');
-	
+
 			// Separate type and definition.
 			$sourceFieldType = substr($sourceDefinition, 0, $pos);
 			$definition = substr($sourceDefinition, $pos+1);
-	
+
 			JLog::add(new JLogEntry($halField.' - '.$sourceFieldType.' - '.$definition, JLOG::DEBUG, 'api'));
-	
+
 			// Look for source field names.  These are surrounded by curly brackets.
 			preg_match_all('/\{(.*)\}/U', $definition, $matches);
-	
+
 			// If the definition contains field names, substitute their values.
 			if (!empty($matches[0]))
 			{
 				foreach ($matches[1] as $key => $fieldName)
 				{
-	
+
 					if ($first == "/")
 					{
-	
+
 						$fixedHalFieldName = substr($halField, 1, strlen($halField));
 						if (isset($data->$fixedHalFieldName) && $data->$fixedHalFieldName)
 						{
@@ -388,12 +385,12 @@ class ApiApplicationResourcemap
 					}
 					else
 					{
-	
+
 						// Left-hand side (HAL field) must be in the form objectName/name.
 						// Note that objectName is optional; default is "main".
 						list($halFieldPath, $halFieldName) = explode('/', $halField);
-	
-						if (isset($data->$fixedHalFieldName) && $data->$fixedHalFieldName)
+
+						if (isset($data->$halFieldPath) && isset($data->$halFieldPath->$halFieldName) && $data->$halFieldPath->$halFieldName)
 						{
 							// Look for an optional field separator in name.
 							// The dot separator indicates that the prefix is an object
@@ -402,12 +399,12 @@ class ApiApplicationResourcemap
 							{
 								// Extract the field names.
 								list($fieldObject, $fieldProperty) = explode('.', $fieldName);
-									
+
 								if (!isset($paramsData[$fieldObject]))
 								{
 									$paramsData[$fieldObject] = new stdClass;
 								}
-									
+
 								$paramsData[$fieldObject]->$fieldProperty = $data->$halFieldPath->$halFieldName;
 							}
 							else
@@ -419,13 +416,13 @@ class ApiApplicationResourcemap
 				} // end foreach
 			}
 		} // end foreach
-	
+
 		// Append the parameters fields
 		foreach ($paramsData as $objName => $object)
 		{
-			$targetData[$objName] = json_encode($object);
+			$targetData[$objName] = !is_scalar($object) ? json_encode($object) : $object;
 		}
-	
+
 		return $targetData;
 	}
 
@@ -447,14 +444,11 @@ class ApiApplicationResourcemap
 		$className = $this->getTransformClass($fieldType);
 
 		// Execute the transform.
-		if (new $className() instanceof ApiTransform)
-		{
-			return $className::toExternal($definition, $data);
-		}
-		else
-		{
-			return $definition;
-		}
+		$return = (new $className() instanceof ApiTransform) 
+			? $className::toExternal($definition, $data)
+			: $definition;
+			
+		return $return;
 	}
 
 	/**
@@ -477,7 +471,7 @@ class ApiApplicationResourcemap
 	 */
 	public function delete($fieldName)
 	{
-		JLog::add(new JLogEntry(__METHOD__.'('.$fieldName.')', JLOG::DEBUG, 'api'));
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
 		unset ($this->map[$fieldName]);
 	}
 }

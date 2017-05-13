@@ -190,13 +190,14 @@ class ApiApplicationHalJoomla extends ApiApplicationHal
 			}
 		}
 		$this->meta->etag = md5(json_encode($properties));
-		if (isset($properties->publish->modified))
+		
+		if (isset($properties['publish']->modified))
 		{
-			$this->meta->lastModified = $properties->publish->modified;
+			$this->meta->lastModified = $properties['publish']->modified;
 		}
-		elseif (isset($properties->publish->created))
+		elseif (isset($properties['publish']->created))
 		{
-			$this->meta->lastModified = isset($properties->publish->created);
+			$this->meta->lastModified = isset($properties['publish']->created);
 		}
 		else
 		{

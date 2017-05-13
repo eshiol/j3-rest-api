@@ -401,6 +401,9 @@ abstract class ApiControllerItem extends ApiControllerBase
 
 			// An exception has been caught, echo the message and exit.
 			$response = array(
+				'message' => $e->getMessage(),
+				'code' => $e->getCode(),
+				'type' => get_class($e)
 			);
 
 			echo json_encode($response);
@@ -698,20 +701,87 @@ abstract class ApiControllerItem extends ApiControllerBase
 			exit;
 		}
 
+		// Get resource item data.
+		$data = $this->getData();
+		
+		// Get service object.
+		$service = $this->getService();
+		
+		// Load the data into the HAL object.
+		$service->load($data);
+		
+		// Get HAL
+		$hal = $service->getHal();
+		
+		$can_update = false;
+
+		// Check If-Match
+		$ifMatch = isset($_SERVER['HTTP_IF_MATCH']) ? $_SERVER['HTTP_IF_MATCH'] : '*';
+		if ($ifMatch != '*')
+		{
+			// Get ETag
+			$etag = $hal->_meta->etag;
+			JLog::add(new JLogEntry('ETag: '.$etag, JLOG::DEBUG, 'api'));
+				
+			$ifMatch = explode(',', $ifMatch);
+			array_walk($ifMatch, function(&$v, &$k) {
+				$v = trim($v, ' "');
+			});
+			JLog::add(new JLogEntry('If-Match: '.print_r($ifMatch, true), JLOG::DEBUG, 'api'));
+			if (!in_array($etag, $ifMatch))
+			{
+				header('Status: 412 Precondition Failed', true, 412);
+				exit;
+			}
+			$can_update = true;
+		}
+
+		// Check If-Unmodified-Since
+		if (isset($_SERVER['HTTP_IF_UNMODIFIED_SINCE']))
+		{
+			if ($ifUnmodifiedSince = strtotime($_SERVER['HTTP_IF_UNMODIFIED_SINCE']))
+			{
+				// Get LastModified
+				$lastModified = strtotime($hal->_meta->lastModified);
+				JLog::add(new JLogEntry('lastModified: '.$hal->_meta->lastModified.' ('.$lastModified.')', JLOG::DEBUG, 'api'));
+
+				JLog::add(new JLogEntry('If-Unmodified-Since: '.$_SERVER['HTTP_IF_UNMODIFIED_SINCE'].' ('.$ifUnmodifiedSince.')', JLOG::DEBUG, 'api'));
+				if ($lastModified > $ifUnmodifiedSince)
+				{
+					header('Status: 412 Precondition Failed', true, 412);
+					exit;
+				}
+			}
+			$can_update = true;
+		}
+
+		if (!$can_update)
+		{
+			header('Status: 400 Bad Request', true, 400);
+			
+			$response = array(
+				'error' => 'bad request',
+				'error_description' => JText::sprintf('JLIB_APPLICATION_ERROR_CHECKOUT_FAILED', JText::_('JLIB_APPLICATION_ERROR_CHECKOUT_USER_MISMATCH'))
+			);
+			
+			echo json_encode($response);
+			exit;
+		}
+		
 		// Verify checkout
 		if ($table->checked_out != 0 && $table->checked_out != $user->id)
 		{
-			header('Status: 401 Unauthorised status', true, 401);
+			header('Status: 400 Bad Request', true, 400);
 
 			$response = array(
-					'error' => 'bad request',
-					'error_description' => JText::sprintf('JLIB_APPLICATION_ERROR_CHECKOUT_FAILED', JText::_('JLIB_APPLICATION_ERROR_CHECKOUT_USER_MISMATCH'))
+				'error' => 'bad request',
+				'error_description' => JText::sprintf('JLIB_APPLICATION_ERROR_CHECKOUT_FAILED', JText::_('JLIB_APPLICATION_ERROR_CHECKOUT_USER_MISMATCH'))
 			);
 
 			echo json_encode($response);
 			exit;
 		}
-
+		
 		// update item
 		try
 		{
@@ -723,38 +793,113 @@ abstract class ApiControllerItem extends ApiControllerBase
 
 			// Get resource item from input.
 			$targetData = json_decode(file_get_contents("php://input"));
-			$targetData->id = $this->id;
-			$targetData->modified_by = $this->app->getIdentity()->get('id');
+			
+			$source = preg_replace_callback (
+//				'/(^|(?<=&))[^=[&]+/',
+				'/(?:^|(?<=&))[^=[]+/',
+				function($key) { return bin2hex(urldecode($key[0])); },
+				$_SERVER['QUERY_STRING']
+			);
+			parse_str($source, $post);
+			
+			$_GET = array_combine(array_map('hex2bin', array_keys($post)), $post);
+			
+			JLog::add(new JLogEntry('get: '.print_r($_GET, true), JLOG::DEBUG, 'api'));
 
+			if (!isset($targetData))
+			{
+				$targetData = new stdClass();
+			}
+			foreach($_GET as $k => $v)
+			{
+				if (($i = strpos($k, '.')) === false)
+				{
+					$targetData->$k = $v;
+				}
+				else 
+				{
+					$n = substr($k, 0, $i);
+					$m = substr($k, $i + 1);
+					if (!isset($targetData->$n))
+					{
+						$targetData->$n = new stdClass();
+					}
+					$targetData->$n->$m = $v;
+				}
+			}
+			
+			JLog::add(new JLogEntry('data: '.print_r($targetData, true), JLOG::DEBUG, 'api'));
+			
+			if (empty((array)$targetData))
+			{
+				header('Status: 400 Bad Request', true, 400);
+				exit;
+			}
+			
 			if ($resourceMap)
 			{
 				$targetData = $resourceMap->toInternal($targetData);
 			}
 
-			JLog::add(new JLogEntry('targetData: '.print_r($targetData, true), JLOG::DEBUG, 'api'));
+			// merge json fields
+			foreach ($targetData as $k => $v) 
+			{
+				json_decode($v);
+				if (json_last_error() == JSON_ERROR_NONE)
+				{
+					$v1 = json_decode($table->$k, true);
+					if (is_array($v1))
+					{
+						$targetData[$k] = json_encode(array_merge($v1,json_decode($v, true)));
+					}
+				}
+			}
+
+			$targetData['id'] = $this->id;
+			$targetData['modified_by'] = $this->app->getIdentity()->get('id');
+			if (isset($table->version))
+			{
+				$targetData['version'] = $table->version + 1;
+			}
 
 			$return = $apiQuery->postItem($query, $table, $targetData);
 		}
 		catch (Exception $e)
 		{
-			$this->app->setHeader('status', '404', true);
-
+			header('Status: 500', true, 500);
+			
 			// An exception has been caught, echo the message and exit.
-			echo json_encode(array('message' => $e->getMessage(), 'code' => $e->getCode(), 'type' => get_class($e)));
+			$response = array(
+				'message' => $e->getMessage(),
+				'code' => $e->getCode(),
+				'type' => get_class($e)
+			);
+			
+			echo json_encode($response);
 			exit;
 		}
 
+		//  @FIXME: show modified item
+		// parent::execute();
+
 		// Get resource item data.
 		$data = $this->getData();
-
+		
 		// Get service object.
 		$service = $this->getService();
 
 		// Load the data into the HAL object.
 		$service->load($data);
-
-		parent::execute();
-
+		
+		// Get HAL
+		$hal = $service->getHal();
+		
+		// Push results into the document.
+		$this->app->getDocument()
+			->setMimeEncoding($this->contentType)		// Comment this line out to debug
+			->setBuffer($hal)
+			;
+		
 		return $return;
 	}
 }
