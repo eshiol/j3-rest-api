@@ -19,22 +19,47 @@ class ApiTransformYNGlobal extends ApiTransformBase
 	public static function toExternal($definition, $data)
 	{
 		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
-		if ($definition == '')
+		switch ($definition)
 		{
-			return 'global';
+			case '':
+				return 'global';
+				break;
+			case 0:
+				return 'no';
+				break;
+			case 1:
+				return 'yes';
+				break;
+			default:
+				return 'undefined';
+				break;
 		}
+	}
 
-		if ($definition == 0)
+	/**
+	 * Method to transform an external representation to an internal one.
+	 *
+	 * @param  string   $definition  Field definition.
+	 * @param  mixed    $data        Source data.
+	 *
+	 * @return int Transformed value.
+	 */
+	public static function toInternal($definition, $data)
+	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
+		switch ($definition)
 		{
-			return 'no';
+			case 'no':
+				return 0;
+				break;
+			case 'yes':
+				return 1;
+				break;
+			case 'global':
+			default:
+				return '';
+				break;
 		}
-
-		if ($definition == 1)
-		{
-			return 'yes';
-		}
-
-		return 'undefined';
 	}
 
 }

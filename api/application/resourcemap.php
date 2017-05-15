@@ -363,8 +363,6 @@ class ApiApplicationResourcemap
 			$sourceFieldType = substr($sourceDefinition, 0, $pos);
 			$definition = substr($sourceDefinition, $pos+1);
 
-			JLog::add(new JLogEntry($halField.' - '.$sourceFieldType.' - '.$definition, JLOG::DEBUG, 'api'));
-
 			// Look for source field names.  These are surrounded by curly brackets.
 			preg_match_all('/\{(.*)\}/U', $definition, $matches);
 
@@ -380,7 +378,7 @@ class ApiApplicationResourcemap
 						$fixedHalFieldName = substr($halField, 1, strlen($halField));
 						if (isset($data->$fixedHalFieldName) && $data->$fixedHalFieldName)
 						{
-							$targetData[$fieldName] = $data->$fixedHalFieldName;
+							$targetData[$fieldName] = $this->_toInternal($sourceFieldType, $data->$fixedHalFieldName, $data);
 						}
 					}
 					else
@@ -405,11 +403,11 @@ class ApiApplicationResourcemap
 									$paramsData[$fieldObject] = new stdClass;
 								}
 
-								$paramsData[$fieldObject]->$fieldProperty = $data->$halFieldPath->$halFieldName;
+								$paramsData[$fieldObject]->$fieldProperty = $this->_toInternal($sourceFieldType, $data->$halFieldPath->$halFieldName, $data);
 							}
 							else
 							{
-								$paramsData[$fieldName] = $data->$halFieldPath->$halFieldName;
+								$paramsData[$fieldName] = $this->_toInternal($sourceFieldType, $data->$halFieldPath->$halFieldName, $data);
 							}
 						}
 					}
@@ -422,7 +420,6 @@ class ApiApplicationResourcemap
 		{
 			$targetData[$objName] = !is_scalar($object) ? json_encode($object) : $object;
 		}
-
 		return $targetData;
 	}
 
@@ -451,6 +448,31 @@ class ApiApplicationResourcemap
 		return $return;
 	}
 
+	/**
+	 * Transform a source field data value.
+	 *
+	 * Calls the static toInternal method of a transform class.
+	 *
+	 * @param  string  $fieldType   Field type.
+	 * @param  string  $definition  Field definition.
+	 * @param  string  $data        Data to be transformed.
+	 *
+	 * @return mixed Transformed data.
+	 */
+	private function _toInternal($fieldType, $definition, $data)
+	{
+		JLog::add(new JLogEntry(__METHOD__, JLOG::DEBUG, 'api'));
+		// Get the transform class name.
+		$className = $this->getTransformClass($fieldType);
+	
+		// Execute the transform.
+		$return = (new $className() instanceof ApiTransform)
+			? $className::toInternal($definition, $data)
+			: $definition;
+			
+		return $return;
+	}
+	
 	/**
 	 * Method to return a simple array of included fields.
 	 *
